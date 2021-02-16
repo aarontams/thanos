@@ -54,6 +54,7 @@ Current object storage client implementations:
 | [Tencent COS](./storage.md#tencent-cos)                                                            | Beta               | Production Usage      | no                | @jojohappy              |
 | [AliYun OSS](./storage.md#aliyun-oss)                                                              | Beta               | Production Usage      | no                | @shaulboozhiao,@wujinhu |
 | [Local Filesystem](./storage.md#filesystem)                                                        | Stable             | Testing and Demo only | yes               | @bwplotka               |
+| [OCI Object Storage](./storage.md#oci)                                                             | Beta               | Production Usage      | yes               | @aarontams              |
 
 
 **Missing support to some object storage?** Check out [how to add your client section](#how-to-add-a-new-client-to-thanos)
@@ -432,6 +433,88 @@ type: FILESYSTEM
 config:
   directory: ""
 ```
+
+### OCI
+
+[Oracle Cloud Infrastructure](https://www.oracle.com/cloud). To configure OCI Object Storage as Thanos Object Store, you need access to OCI Object Storage.
+You can get a free OCI Cloud Services by following the [Oracle Cloud Free Tier](https://www.oracle.com/cloud/free) page.
+More information about [Overview of Object Storage](https://docs.cloud.oracle.com/en-us/iaas/Content/Object/Concepts/objectstorageoverview.htm).
+
+OCI Object Storage supports three different providers, default, instance principle, and raw.
+
+#### Default
+The default config provider will look for configurations in 3 places: file in `$HOME/.oci/config`, `$HOME/.obmcs/config`, and
+variables names starting with the string TF_VAR. If the same configuration is found in multiple places the provider will
+prefer the first one.
+
+For Example:
+```yaml
+type: OCI
+config:
+  provider: "default"
+  bucket: ""
+  compartment_ocid: ""
+  partSize: ""           // An optional part size (in MiB) for uploading - recommended to use OCI SDK default
+  maxRequestRetries: ""  // An optional maximum number of retries for a request
+  objectBasePath: ""     // An optional object base path (prefix) in OCI bucket
+```  
+
+
+#### Instance Principle
+For Example:
+```yaml
+type: OCI
+config:
+  provider: "instance-principal"
+  bucket: ""
+  compartment_ocid: ""
+  partSize: ""           // An optional part size (in MiB) for uploading - recommended to use OCI SDK default
+  maxRequestRetries: ""  // An optional maximum number of retries for a request
+  objectBasePath: ""     // An optional object base path (prefix) in OCI bucket
+```  
+
+#### Raw
+For Example:
+```yaml
+type: OCI
+config:
+  provider: "raw"
+  bucket: ""
+  compartment_ocid: ""
+  tenancy_ocid: ""
+  user_ocid: ""
+  region: ""
+  fingerprint: ""
+  privatekey: ""
+  passphrase: ""         // An optional passphrase to encrypt the private API Signing key
+  partSize: ""           // An optional part size (in MiB) for uploading - recommended to use OCI SDK default
+  maxRequestRetries: ""  // An optional maximum number of retries for a request
+  objectBasePath: ""     // An optional object base path (prefix) in OCI bucket
+```  
+
+#### TestObjStore_AcceptanceTest_e2e
+Use environment variables for Thanos object store E2E acceptance test.
+Here is the list of environment variables that can be set:
+```yaml
+OCI_PROVIDER=raw
+OCI_BUCKET
+OCI_COMPARTMENT
+OCI_TENANCY_OCID
+OCI_USER_OCID
+OCI_REGION
+OCI_FINGERPRINT
+OCI_PRIVATEKEY
+OCI_PASSPHRASE           // An optional passphrase to encrypt the private API Signing key
+OCI_PARTSIZE             // An optional part size (in MiB) for uploading - recommended to use OCI SDK default
+OCI_MAX_REQUEST_RETRIES  // An optional maximum number of retries for a request
+OCI_OBJECT_BASE_PATH     // An optional object base path (prefix) in OCI bucket
+```
+To include OCI Object Store in TestObjStore_AcceptanceTest_e2e run, make sure environment variable
+`THANOS_TEST_OBJSTORE_SKIP` doesn't include `OCI` in it. Then run
+```shell
+go test -v -run TestObjStore_AcceptanceTest_e2e ./pkg/...
+```
+
 
 ### How to add a new client to Thanos?
 

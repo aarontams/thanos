@@ -42,6 +42,7 @@ require (
 	github.com/olekukonko/tablewriter v0.0.2
 	github.com/opentracing/basictracer-go v1.0.0
 	github.com/opentracing/opentracing-go v1.2.0
+	github.com/oracle/oci-go-sdk/v35 v35.0.0
 	github.com/pkg/errors v0.9.1
 	github.com/pmezard/go-difflib v1.0.0
 	github.com/prometheus/alertmanager v0.21.1-0.20201106142418-c39b78780054

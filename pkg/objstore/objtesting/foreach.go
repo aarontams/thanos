@@ -9,13 +9,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/thanos-io/thanos/pkg/objstore/client"
-	"github.com/thanos-io/thanos/pkg/objstore/filesystem"
-
 	"github.com/thanos-io/thanos/pkg/objstore"
 	"github.com/thanos-io/thanos/pkg/objstore/azure"
+	"github.com/thanos-io/thanos/pkg/objstore/client"
 	"github.com/thanos-io/thanos/pkg/objstore/cos"
+	"github.com/thanos-io/thanos/pkg/objstore/filesystem"
 	"github.com/thanos-io/thanos/pkg/objstore/gcs"
+	"github.com/thanos-io/thanos/pkg/objstore/oci"
 	"github.com/thanos-io/thanos/pkg/objstore/oss"
 	"github.com/thanos-io/thanos/pkg/objstore/s3"
 	"github.com/thanos-io/thanos/pkg/objstore/swift"
@@ -23,7 +23,7 @@ import (
 )
 
 // IsObjStoreSkipped returns true if given provider ID is found in THANOS_TEST_OBJSTORE_SKIP array delimited by comma e.g:
-// THANOS_TEST_OBJSTORE_SKIP=GCS,S3,AZURE,SWIFT,COS,ALIYUNOSS.
+// THANOS_TEST_OBJSTORE_SKIP=GCS,S3,AZURE,SWIFT,COS,ALIYUNOSS,OCI.
 func IsObjStoreSkipped(t *testing.T, provider client.ObjProvider) bool {
 	if e, ok := os.LookupEnv("THANOS_TEST_OBJSTORE_SKIP"); ok {
 		obstores := strings.Split(e, ",")
@@ -140,6 +140,19 @@ func ForeachStore(t *testing.T, testFn func(t *testing.T, bkt objstore.Bucket)) 
 	if !IsObjStoreSkipped(t, client.ALIYUNOSS) {
 		t.Run("AliYun oss", func(t *testing.T) {
 			bkt, closeFn, err := oss.NewTestBucket(t)
+			testutil.Ok(t, err)
+
+			t.Parallel()
+			defer closeFn()
+
+			testFn(t, bkt)
+		})
+	}
+
+	// Optional OCI.
+	if !IsObjStoreSkipped(t, client.OCI) {
+		t.Run("oci", func(t *testing.T) {
+			bkt, closeFn, err := oci.NewTestBucket(t)
 			testutil.Ok(t, err)
 
 			t.Parallel()
